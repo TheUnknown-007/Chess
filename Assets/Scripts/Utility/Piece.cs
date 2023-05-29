@@ -1,43 +1,38 @@
-using System;
+public class Piece
+{
+    public int piece;
+    public int position;
+    public int colour;
+    public int type;
 
-public static class Piece {
-    public const int None = 0;
-    public const int Pawn = 1;
-    public const int Knight = 2;
-    public const int Bishop = 3;
-    public const int Rook = 4;
-    public const int Queen = 5;
-    public const int King = 6;
+    public Move[] legalMoves;
 
-    public const int White = 8;
-    public const int Black = 16;
-
-    const int typeMask = 0b00111;
-    const int blackMask = 0b10000;
-    const int whiteMask = 0b01000;
-    const int colourMask = whiteMask | blackMask;
-
-    public static bool IsColour (int piece, int colour) {
-        return (piece & colourMask) == colour;
+    public Piece(int Piece, int Position)
+    {
+        piece = Piece;
+        position = Position;
+        legalMoves = null;
+        type = PieceUtil.PieceType(piece);
+        colour = PieceUtil.Colour(piece);
     }
 
-    public static int Colour (int piece) {
-        return piece & colourMask;
+    public void SetLegalMoves(Move[] moves)
+    {
+        legalMoves = moves;
     }
 
-    public static int PieceType (int piece) {
-        return piece & typeMask;
+    public bool IsWhite()
+    {
+        return colour == PieceUtil.White;
     }
 
-    public static bool IsRookOrQueen (int piece) {
-        return (piece & 0b110) == 0b110;
+    public bool IsColour(int match)
+    {
+        return match == colour;
     }
 
-    public static bool IsBishopOrQueen (int piece) {
-        return (piece & 0b101) == 0b101;
-    }
-
-    public static bool IsSlidingPiece (int piece) {
-        return (piece & 0b100) != 0;
+    public bool IsSlidingPiece()
+    {
+        return PieceUtil.IsSlidingPiece(piece);
     }
 }

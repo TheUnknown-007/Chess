@@ -14,10 +14,10 @@ public class MoveGenerator : MonoBehaviour
         // TODO: optimize
         for(int startSquare = 0; startSquare < 64; startSquare++)
         {
-            int piece = Board.instance.Cells[startSquare].GetComponent<Square>()._piece;
-            if(Piece.IsColour(piece, Board.instance.ColourToMove))
+            Piece piece = Board.instance.Cells[startSquare].GetComponent<Square>()._piece;
+            if(piece.IsColour(Board.instance.ColourToMove))
             {
-                if(Piece.IsSlidingPiece(piece))
+                if(piece.IsSlidingPiece())
                     moves.AddRange(GenerateSlidingMoves(startSquare, piece));
             }
         }
@@ -25,33 +25,51 @@ public class MoveGenerator : MonoBehaviour
         return moves.ToArray();
     }
 
-    public static Move[] GenerateSlidingMoves(int startSquare, int piece)
+    public static Move[] GenerateMoves(Piece piece)
     {
-        Debug.Log(NumSquaresToEdge[startSquare][3]);
+        if(piece.IsSlidingPiece())
+            return GenerateSlidingMoves(piece.position, piece);
+        else if(piece.type == PieceUtil.King)
+            return GenerateKingMoves(piece.position, piece);
+        return new Move[0];
+    }
+
+    static Move[] GenerateSlidingMoves(int startSquare, Piece piece)
+    {
         List<Move> _moves = new List<Move>();
-        int friendlyColor = Piece.Colour(piece);
-        for(int directionIndex = 0; directionIndex < 8; directionIndex++)
+        int friendlyColor = piece.colour;
+        int startDirOffset = piece.type == PieceUtil.Bishop ? 4 : 0;
+        int endDirOffset =  piece.type == PieceUtil.Rook ? 4 : 8;
+
+        for(int directionIndex = startDirOffset; directionIndex < endDirOffset; directionIndex++)
         {
             for(int n = 0; n<NumSquaresToEdge[startSquare][directionIndex]; n++)
             {
                 int targetSquare = startSquare + DirectionOffsets[directionIndex] * (n+1);
-                int pieceOnTargetSquare = Board.instance.Cells[targetSquare].GetComponent<Square>()._piece;
+                Piece pieceOnTargetSquare = Board.instance.Cells[targetSquare].GetComponent<Square>()._piece;
 
-                if(Piece.PieceType(pieceOnTargetSquare) != 0)
+                if(pieceOnTargetSquare != null)
                 {
                     // Blocked by Friendly
-                    if(Piece.IsColour(pieceOnTargetSquare, friendlyColor)) break;
+                    if(pieceOnTargetSquare.IsColour(friendlyColor)) break;
 
                     _moves.Add(new Move(startSquare, targetSquare));
 
                     // Blocked by Opponent
-                    if(!Piece.IsColour(pieceOnTargetSquare, friendlyColor)) break;
+                    if(!pieceOnTargetSquare.IsColour(friendlyColor)) break;
                 }
 
                 else _moves.Add(new Move(startSquare, targetSquare));
             }
         }
 
+        return _moves.ToArray();
+    }
+
+    static Move[] GenerateKingMoves(int startSquare, Piece piece)
+    {
+        List<Move> _moves = new List<Move>();
+        // Only allow safe squares
         return _moves.ToArray();
     }
 }

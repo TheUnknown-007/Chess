@@ -12,20 +12,22 @@ public class Board : MonoBehaviour
     [SerializeField] Color LightColor;
     [SerializeField] Color HighlightDarkColor;
     [SerializeField] Color HighlightLightColor;
+    [SerializeField] Color PickedPieceLight;
+    [SerializeField] Color PickedPieceDark;
     public Sprite[] PieceSpritesBlack;
     public Sprite[] PieceSpritesWhite;
 
+    List<Piece> whitePieces;
+    List<Piece> blackPieces;
+
+    
     [HideInInspector] public int ColourToMove = 8;
 
     [SerializeField] SpriteRenderer heldPieceSprite;
     
-    public static bool isPieceHeld;
-    int heldPiece;
-    int heldPiecePos;
+    Piece heldPiece = null;
     int mouseHoverSquareID;
-    Move[] heldPieceMoves;
 
-    int move;
     int halfMoves;
     int fullMoves;
     string enPessantSquare = "-";
@@ -44,12 +46,14 @@ public class Board : MonoBehaviour
 
     void Update()
     {
-        if(isPieceHeld && Input.GetMouseButtonUp(0))
+        if(heldPiece != null && Input.GetMouseButtonUp(0))
             DropPiece();
     }
 
     void PrepareBoard()
     {
+        blackPieces = new List<Piece>();
+        whitePieces = new List<Piece>();
         for(int rank = 0; rank < 8; rank++)
         {
             for(int file = 0; file < 8; file++)
@@ -59,13 +63,27 @@ public class Board : MonoBehaviour
             }   
         }
         PlacePieces(startingPosition);
+        Debug.Log(whitePieces.Count);
+        if(ColourToMove == 8)
+            foreach(Piece piece in whitePieces)
+            {
+                piece.SetLegalMoves(MoveGenerator.GenerateMoves(piece));
+                Debug.Log(piece.legalMoves.Length);
+            }
+        else
+            foreach(Piece piece in blackPieces)
+            {
+                piece.SetLegalMoves(MoveGenerator.GenerateMoves(piece));
+                Debug.Log(piece.legalMoves.Length);
+
+            }
     }
 
     void PlacePieces(string FEN)
     {
         var SymbolToPiece = new Dictionary<char, int>() {
-            ['p'] = Piece.Pawn, ['n'] = Piece.Knight, ['b'] = Piece.Bishop,
-            ['r'] = Piece.Rook, ['q'] = Piece.Queen,  ['k'] = Piece.King
+            ['p'] = PieceUtil.Pawn, ['n'] = PieceUtil.Knight, ['b'] = PieceUtil.Bishop,
+            ['r'] = PieceUtil.Rook, ['q'] = PieceUtil.Queen,  ['k'] = PieceUtil.King
         };
         int rank = 7;
         int file = 0;
@@ -82,7 +100,7 @@ public class Board : MonoBehaviour
             }
             else if(Char.IsLetter(instruction))
             {
-                int color = Char.IsUpper(pieces[x]) ? Piece.White : Piece.Black;
+                int color = Char.IsUpper(pieces[x]) ? PieceUtil.White : PieceUtil.Black;
                 int piece = SymbolToPiece[Char.ToLower(instruction)];
                 PlacePiece(color | piece, rank*8 + file);
                 file++;
@@ -94,8 +112,8 @@ public class Board : MonoBehaviour
             }
         }
 
-        if(fenParts[1] == "w") move = 0;
-        else move = 1;
+        if(fenParts[1] == "w") ColourToMove = 8;
+        else ColourToMove = 16;
 
         int bs = 0;
         int bl = 0;
@@ -128,50 +146,63 @@ public class Board : MonoBehaviour
 
     void PlacePiece(int piece, int cellIndex)
     {
-        Cells[cellIndex].GetComponent<Square>().SetPiece(piece);
+        Piece p = new Piece(piece, cellIndex);
+        if(p.IsWhite())
+            whitePieces.Add(p);
+        else
+            blackPieces.Add(p);
+        Cells[cellIndex].GetComponent<Square>().SetPiece(p);
     }
 
-    public void HoldPiece(int piece, int position)
+    public void HoldPiece(Piece piece, int position)
     {
-        if(Piece.IsSlidingPiece(piece))
-            heldPieceMoves = MoveGenerator.GenerateSlidingMoves(position, piece);
-        foreach(Move move in heldPieceMoves)
-            HighlightSquare(move.TargetSquare, true);
-        heldPieceSprite.sprite = Piece.IsColour(piece, Piece.White) ? PieceSpritesWhite[Piece.PieceType(piece) - 1] : PieceSpritesBlack[Piece.PieceType(piece) - 1];          
         heldPiece = piece;
-        heldPiecePos = position;
-        isPieceHeld = true;
+        foreach(Move move in heldPiece.legalMoves)
+            HighlightSquare(move.TargetSquare, 1);
+        HighlightSquare(position, 3);
+        heldPieceSprite.sprite = piece.IsWhite() ? PieceSpritesWhite[piece.type - 1] : PieceSpritesBlack[piece.type - 1];          
     }
 
     void DropPiece()
     {
         bool legalMove = false;
-        foreach(Move move in heldPieceMoves)
+        foreach(Move move in heldPiece.legalMoves)
         {
-            HighlightSquare(move.TargetSquare, false);
-            if(move.TargetSquare == mouseHoverSquareID) legalMove = true;
+            HighlightSquare(move.TargetSquare, 0);
+            if(move.TargetSquare == mouseHoverSquareID)
+                legalMove = true;
         }
+        HighlightSquare(heldPiece.position, 2);
 
         if(legalMove)
             Cells[mouseHoverSquareID].GetComponent<Square>().SetPiece(heldPiece);
-
         else
-            Cells[heldPiecePos].GetComponent<Square>().SetPiece(heldPiece);
+            Cells[heldPiece.position].GetComponent<Square>().SetPiece(heldPiece);
         
-        heldPieceMoves = null;
         heldPieceSprite.sprite = null;
-        heldPiece = 0;
-        heldPiecePos = -1;
-        isPieceHeld = false;
+        heldPiece = null;
     }
 
-    void HighlightSquare(int id, bool state)
+    void HighlightSquare(int id, int state)
     {
         Color oriColor = Cells[id].GetComponent<SpriteRenderer>().color;
-        if(state)
-            Cells[id].GetComponent<SpriteRenderer>().color = oriColor == LightColor ? HighlightLightColor : HighlightDarkColor;
-        else
-            Cells[id].GetComponent<SpriteRenderer>().color = oriColor == HighlightLightColor ? LightColor : DarkColor;
+        switch(state)
+        {
+            case 0:
+                Cells[id].GetComponent<SpriteRenderer>().color = oriColor == HighlightLightColor ? LightColor : DarkColor;
+                break;
+            case 1:
+                Cells[id].GetComponent<SpriteRenderer>().color = oriColor == LightColor ? HighlightLightColor : HighlightDarkColor;
+                break;
+            case 2:
+                Cells[id].GetComponent<SpriteRenderer>().color = oriColor == PickedPieceLight ? LightColor : DarkColor;
+                break;
+            case 3:
+                Cells[id].GetComponent<SpriteRenderer>().color = oriColor == LightColor ? PickedPieceLight : PickedPieceDark;
+                break;
+        }
+
+        
     }
 
     public void SetMousePosition(int id)

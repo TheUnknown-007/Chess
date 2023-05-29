@@ -67,15 +67,15 @@ public readonly struct Move {
 		get {
 			switch (MoveFlag) {
 				case Flag.PromoteToRook:
-					return Piece.Rook;
+					return PieceUtil.Rook;
 				case Flag.PromoteToKnight:
-					return Piece.Knight;
+					return PieceUtil.Knight;
 				case Flag.PromoteToBishop:
-					return Piece.Bishop;
+					return PieceUtil.Bishop;
 				case Flag.PromoteToQueen:
-					return Piece.Queen;
+					return PieceUtil.Queen;
 				default:
-					return Piece.None;
+					return PieceUtil.None;
 			}
 		}
 	}

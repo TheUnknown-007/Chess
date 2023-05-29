@@ -3,7 +3,7 @@ using UnityEngine;
 public class Square : MonoBehaviour
 {
     public int id;
-    public int _piece;
+    public Piece _piece;
     SpriteRenderer pieceSprite;
 
     void Awake()
@@ -17,26 +17,28 @@ public class Square : MonoBehaviour
         GetComponent<SpriteRenderer>().color = Color;
     }
 
-    public void SetPiece(int piece)
+    public void SetPiece(Piece piece)
     {
-        _piece = piece;
-        int type = Piece.PieceType(piece);
-        if(type == 0)
+        if(piece == null)
+        {
+            _piece = null;
             pieceSprite.sprite = null;
-        else {
-            if(Piece.IsColour(piece, Piece.White))
-                pieceSprite.sprite = Board.instance.PieceSpritesWhite[type - 1];
-            else
-                pieceSprite.sprite = Board.instance.PieceSpritesBlack[type - 1];
+            return;
         }
+
+        _piece = piece;
+        if(piece.IsWhite())
+            pieceSprite.sprite = Board.instance.PieceSpritesWhite[piece.type - 1];
+        else
+            pieceSprite.sprite = Board.instance.PieceSpritesBlack[piece.type - 1];
     }
 
     void OnMouseDown()
     {
-        if(Piece.PieceType(_piece) == 0) return;
+        if(_piece == null) return;
 
         Board.instance.HoldPiece(_piece, id);
-        SetPiece(0);
+        SetPiece(null);
     }
 
     void OnMouseOver()
