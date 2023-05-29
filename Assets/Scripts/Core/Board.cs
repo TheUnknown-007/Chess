@@ -7,11 +7,15 @@ public class Board : MonoBehaviour
     public static Board instance;
 
     [SerializeField] string startingPosition;
-    [SerializeField] GameObject[] Cells;
+    public GameObject[] Cells;
     [SerializeField] Color DarkColor;
     [SerializeField] Color LightColor;
+    [SerializeField] Color HighlightDarkColor;
+    [SerializeField] Color HighlightLightColor;
     public Sprite[] PieceSpritesBlack;
     public Sprite[] PieceSpritesWhite;
+
+    [HideInInspector] public int ColourToMove = 8;
 
     [SerializeField] SpriteRenderer heldPieceSprite;
     
@@ -19,6 +23,7 @@ public class Board : MonoBehaviour
     int heldPiece;
     int heldPiecePos;
     int mouseHoverSquareID;
+    Move[] heldPieceMoves;
 
     int move;
     int halfMoves;
@@ -73,7 +78,7 @@ public class Board : MonoBehaviour
             if(Char.IsDigit(instruction))
             {
                 int offset = (int)Char.GetNumericValue(instruction);
-                if(offset != 8)
+                if(offset != 8-file)
                 {
                     file+=offset;
                     x++;
@@ -135,6 +140,10 @@ public class Board : MonoBehaviour
 
     public void HoldPiece(int piece, int position)
     {
+        if(Piece.IsSlidingPiece(piece))
+            heldPieceMoves = MoveGenerator.GenerateSlidingMoves(position, piece);
+        foreach(Move move in heldPieceMoves)
+            HighlightSquare(move.TargetSquare, true);
         heldPieceSprite.sprite = Piece.IsColour(piece, Piece.White) ? PieceSpritesWhite[Piece.PieceType(piece) - 1] : PieceSpritesBlack[Piece.PieceType(piece) - 1];          
         heldPiece = piece;
         heldPiecePos = position;
@@ -143,21 +152,33 @@ public class Board : MonoBehaviour
 
     void DropPiece()
     {
-        // if legal make move
-        if(1==1)
+        bool legalMove = false;
+        foreach(Move move in heldPieceMoves)
         {
-            Cells[mouseHoverSquareID].GetComponent<Square>().SetPiece(heldPiece);            
+            HighlightSquare(move.TargetSquare, false);
+            if(move.TargetSquare == mouseHoverSquareID) legalMove = true;
         }
 
-        // else drop it back to original square
-        else{
+        if(legalMove)
+            Cells[mouseHoverSquareID].GetComponent<Square>().SetPiece(heldPiece);
+
+        else
             Cells[heldPiecePos].GetComponent<Square>().SetPiece(heldPiece);
-        }
         
+        heldPieceMoves = null;
         heldPieceSprite.sprite = null;
         heldPiece = 0;
         heldPiecePos = -1;
         isPieceHeld = false;
+    }
+
+    void HighlightSquare(int id, bool state)
+    {
+        Color oriColor = Cells[id].GetComponent<SpriteRenderer>().color;
+        if(state)
+            Cells[id].GetComponent<SpriteRenderer>().color = oriColor == LightColor ? HighlightLightColor : HighlightDarkColor;
+        else
+            Cells[id].GetComponent<SpriteRenderer>().color = oriColor == HighlightLightColor ? LightColor : DarkColor;
     }
 
     public void SetMousePosition(int id)

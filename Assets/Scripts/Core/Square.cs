@@ -2,8 +2,8 @@ using UnityEngine;
 
 public class Square : MonoBehaviour
 {
-    int id;
-    int _piece;
+    public int id;
+    public int _piece;
     SpriteRenderer pieceSprite;
 
     void Awake()
