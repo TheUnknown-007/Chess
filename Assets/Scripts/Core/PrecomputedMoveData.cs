@@ -2,7 +2,7 @@ using static System.Math;
 
 public static class PrecomputedMoveData
 {
-    public static readonly int[] DirectionOffsets = { 8, -8, 1, -1, 7, -7, 9, -9 };
+    public static readonly int[] DirectionOffsets = { 8, -8, -1, 1, 7, -7, 9, -9 };
     public static readonly int[][] NumSquaresToEdge;
 
     static PrecomputedMoveData()

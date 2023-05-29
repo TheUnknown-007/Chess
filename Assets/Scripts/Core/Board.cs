@@ -78,14 +78,7 @@ public class Board : MonoBehaviour
             if(Char.IsDigit(instruction))
             {
                 int offset = (int)Char.GetNumericValue(instruction);
-                if(offset != 8-file)
-                {
-                    file+=offset;
-                    x++;
-                    int piece = SymbolToPiece[Char.ToLower(pieces[x])];
-                    int color = Char.IsUpper(pieces[x]) ? Piece.White : Piece.Black;
-                    PlacePiece(color | piece, rank*8 + file);
-                }
+                file+=offset;
             }
             else if(Char.IsLetter(instruction))
             {
