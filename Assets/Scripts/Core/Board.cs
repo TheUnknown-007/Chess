@@ -10,10 +10,8 @@ public class Board : MonoBehaviour
     [SerializeField] GameObject[] Cells;
     [SerializeField] Color DarkColor;
     [SerializeField] Color LightColor;
-    [SerializeField] Sprite[] pieceSpritesBlack;
-    [SerializeField] Sprite[] pieceSpritesWhite;
-    public static Sprite[] PieceSpritesBlack;
-    public static Sprite[] PieceSpritesWhite;
+    public Sprite[] PieceSpritesBlack;
+    public Sprite[] PieceSpritesWhite;
 
     [SerializeField] SpriteRenderer heldPieceSprite;
     
@@ -35,8 +33,6 @@ public class Board : MonoBehaviour
 
     void Start()
     {
-        PieceSpritesBlack = pieceSpritesBlack;
-        PieceSpritesWhite = pieceSpritesWhite;
         PrepareBoard();
     }
 
@@ -132,7 +128,7 @@ public class Board : MonoBehaviour
 
     public void HoldPiece(int piece, int position)
     {
-        heldPieceSprite.sprite = Piece.IsColour(piece, Piece.White) ? Board.PieceSpritesWhite[Piece.PieceType(piece) - 1] : Board.PieceSpritesBlack[Piece.PieceType(piece) - 1];          
+        heldPieceSprite.sprite = Piece.IsColour(piece, Piece.White) ? PieceSpritesWhite[Piece.PieceType(piece) - 1] : PieceSpritesBlack[Piece.PieceType(piece) - 1];          
         heldPiece = piece;
         heldPiecePos = position;
         isPieceHeld = true;
