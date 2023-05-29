@@ -18,6 +18,7 @@ public class Board : MonoBehaviour
     public static bool isPieceHeld;
     int heldPiece;
     int heldPiecePos;
+    int mouseHoverSquareID;
 
     int move;
     int halfMoves;
@@ -36,6 +37,12 @@ public class Board : MonoBehaviour
         PrepareBoard();
     }
 
+    void Update()
+    {
+        if(isPieceHeld && Input.GetMouseButtonUp(0))
+            DropPiece();
+    }
+
     void PrepareBoard()
     {
         for(int rank = 0; rank < 8; rank++)
@@ -43,7 +50,7 @@ public class Board : MonoBehaviour
             for(int file = 0; file < 8; file++)
             {
                 int index = rank*8 + file;
-                Cells[index].GetComponent<SpriteRenderer>().color = ((file+rank) % 2 == 0) ? DarkColor : LightColor;
+                Cells[index].GetComponent<Square>().Initialize(index, ((file+rank) % 2 == 0) ? DarkColor : LightColor);
             }   
         }
         PlacePieces(startingPosition);
@@ -134,12 +141,27 @@ public class Board : MonoBehaviour
         isPieceHeld = true;
     }
 
-    public void DropPiece(int piece)
+    void DropPiece()
     {
-        
         // if legal make move
+        if(1==1)
+        {
+            Cells[mouseHoverSquareID].GetComponent<Square>().SetPiece(heldPiece);            
+        }
 
         // else drop it back to original square
-        Cells[heldPiecePos].GetComponent<Square>().SetPiece(piece);
+        else{
+            Cells[heldPiecePos].GetComponent<Square>().SetPiece(heldPiece);
+        }
+        
+        heldPieceSprite.sprite = null;
+        heldPiece = 0;
+        heldPiecePos = -1;
+        isPieceHeld = false;
+    }
+
+    public void SetMousePosition(int id)
+    {
+        mouseHoverSquareID = id;
     }
 }

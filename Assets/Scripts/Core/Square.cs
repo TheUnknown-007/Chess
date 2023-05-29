@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Square : MonoBehaviour
@@ -11,6 +9,12 @@ public class Square : MonoBehaviour
     void Awake()
     {
         pieceSprite = transform.GetChild(0).GetComponent<SpriteRenderer>();
+    }
+
+    public void Initialize(int ID, Color Color)
+    {
+        id = ID;
+        GetComponent<SpriteRenderer>().color = Color;
     }
 
     public void SetPiece(int piece)
@@ -29,7 +33,14 @@ public class Square : MonoBehaviour
 
     void OnMouseDown()
     {
+        if(Piece.PieceType(_piece) == 0) return;
+
         Board.instance.HoldPiece(_piece, id);
-        SetPiece(Piece.Colour(_piece));
+        SetPiece(0);
+    }
+
+    void OnMouseOver()
+    {
+        Board.instance.SetMousePosition(id);
     }
 }
