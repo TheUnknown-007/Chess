@@ -4,8 +4,9 @@ using UnityEngine;
 
 public class Board : MonoBehaviour
 {
-    public static Board instance;
+    public static Board Instance;
 
+    [SerializeField] SpriteRenderer heldPieceSprite;
     [SerializeField] string startingPosition;
     public GameObject[] Cells;
     [SerializeField] Color DarkColor;
@@ -16,27 +17,17 @@ public class Board : MonoBehaviour
     [SerializeField] Color PickedPieceDark;
     public Sprite[] PieceSpritesBlack;
     public Sprite[] PieceSpritesWhite;
-
-    List<Piece> whitePieces;
-    List<Piece> blackPieces;
-
-    
-    [HideInInspector] public int ColourToMove = 8;
-
-    [SerializeField] SpriteRenderer heldPieceSprite;
     
     Piece heldPiece = null;
     int mouseHoverSquareID;
 
-    int halfMoves;
-    int fullMoves;
-    string enPessantSquare = "-";
-    int[] whiteCastleRights;
-    int[] blackCastleRights;
+    List<Piece> _blackPieces = new List<Piece>();
+    List<Piece> _whitePieces = new List<Piece>();
+
 
     void Awake()
     {
-        if(instance == null) instance = this;
+        if(Instance == null) Instance = this;
     }
 
     void Start()
@@ -52,8 +43,6 @@ public class Board : MonoBehaviour
 
     void PrepareBoard()
     {
-        blackPieces = new List<Piece>();
-        whitePieces = new List<Piece>();
         for(int rank = 0; rank < 8; rank++)
         {
             for(int file = 0; file < 8; file++)
@@ -63,20 +52,6 @@ public class Board : MonoBehaviour
             }   
         }
         PlacePieces(startingPosition);
-        Debug.Log(whitePieces.Count);
-        if(ColourToMove == 8)
-            foreach(Piece piece in whitePieces)
-            {
-                piece.SetLegalMoves(MoveGenerator.GenerateMoves(piece));
-                Debug.Log(piece.legalMoves.Length);
-            }
-        else
-            foreach(Piece piece in blackPieces)
-            {
-                piece.SetLegalMoves(MoveGenerator.GenerateMoves(piece));
-                Debug.Log(piece.legalMoves.Length);
-
-            }
     }
 
     void PlacePieces(string FEN)
@@ -112,8 +87,7 @@ public class Board : MonoBehaviour
             }
         }
 
-        if(fenParts[1] == "w") ColourToMove = 8;
-        else ColourToMove = 16;
+        
 
         int bs = 0;
         int bl = 0;
@@ -137,20 +111,19 @@ public class Board : MonoBehaviour
                     break;
             }
         }
-        whiteCastleRights = new int[2] { wl, ws };
-        blackCastleRights = new int[2] { bl, bs };
-        enPessantSquare = fenParts[3];
-        halfMoves = int.Parse(fenParts[4]);
-        fullMoves = int.Parse(fenParts[5]);
+
+
+        int enPessant = (fenParts[3] == "-") ? -1 : (int)((fenParts[3][0] - 'a')*8 + (Char.GetNumericValue(fenParts[3][1])));
+        GameManager.Instance.Initialize(_whitePieces, _blackPieces, (fenParts[1] == "w") ? 8 : 16, new int[][] { new int[2] { wl, ws }, new int[] { bl, bs } }, enPessant, int.Parse(fenParts[4]), int.Parse(fenParts[5]));
     }
 
     void PlacePiece(int piece, int cellIndex)
     {
         Piece p = new Piece(piece, cellIndex);
         if(p.IsWhite())
-            whitePieces.Add(p);
+            _whitePieces.Add(p);
         else
-            blackPieces.Add(p);
+            _blackPieces.Add(p);
         Cells[cellIndex].GetComponent<Square>().SetPiece(p);
     }
 

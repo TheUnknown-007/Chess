@@ -14,8 +14,8 @@ public class MoveGenerator : MonoBehaviour
         // TODO: optimize
         for(int startSquare = 0; startSquare < 64; startSquare++)
         {
-            Piece piece = Board.instance.Cells[startSquare].GetComponent<Square>()._piece;
-            if(piece.IsColour(Board.instance.ColourToMove))
+            Piece piece = Board.Instance.Cells[startSquare].GetComponent<Square>()._piece;
+            if(piece.IsColour(GameManager.Instance.ColourToMove))
             {
                 if(piece.IsSlidingPiece())
                     moves.AddRange(GenerateSlidingMoves(startSquare, piece));
@@ -46,7 +46,7 @@ public class MoveGenerator : MonoBehaviour
             for(int n = 0; n<NumSquaresToEdge[startSquare][directionIndex]; n++)
             {
                 int targetSquare = startSquare + DirectionOffsets[directionIndex] * (n+1);
-                Piece pieceOnTargetSquare = Board.instance.Cells[targetSquare].GetComponent<Square>()._piece;
+                Piece pieceOnTargetSquare = Board.Instance.Cells[targetSquare].GetComponent<Square>()._piece;
 
                 if(pieceOnTargetSquare != null)
                 {

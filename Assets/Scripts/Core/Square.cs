@@ -28,21 +28,21 @@ public class Square : MonoBehaviour
 
         _piece = piece;
         if(piece.IsWhite())
-            pieceSprite.sprite = Board.instance.PieceSpritesWhite[piece.type - 1];
+            pieceSprite.sprite = Board.Instance.PieceSpritesWhite[piece.type - 1];
         else
-            pieceSprite.sprite = Board.instance.PieceSpritesBlack[piece.type - 1];
+            pieceSprite.sprite = Board.Instance.PieceSpritesBlack[piece.type - 1];
     }
 
     void OnMouseDown()
     {
         if(_piece == null) return;
 
-        Board.instance.HoldPiece(_piece, id);
+        Board.Instance.HoldPiece(_piece, id);
         SetPiece(null);
     }
 
     void OnMouseOver()
     {
-        Board.instance.SetMousePosition(id);
+        Board.Instance.SetMousePosition(id);
     }
 }
