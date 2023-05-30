@@ -1,10 +1,12 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
+
+    [SerializeField] TMP_Text movesText;
 
     List<Piece> whitePieces;
     List<Piece> blackPieces;
@@ -49,10 +51,11 @@ public class GameManager : MonoBehaviour
 
     public void MakeAMove(Move move)
     {
-        Piece movingPiece = Board.Instance.Cells[move.StartSquare].GetComponent<Square>()._piece;
-        Piece targetPiece = Board.Instance.Cells[move.TargetSquare].GetComponent<Square>()._piece;
+        Piece movingPiece = Board.Instance.Cells[move.StartSquare].GetComponent<Square>().piece;
+        Piece targetPiece = Board.Instance.Cells[move.TargetSquare].GetComponent<Square>().piece;
         Board.Instance.Cells[move.StartSquare].GetComponent<Square>().SetPiece(null);
         Board.Instance.Cells[move.TargetSquare].GetComponent<Square>().SetPiece(movingPiece);
+        movingPiece.position = move.TargetSquare;
 
         if(targetPiece != null)
             (targetPiece.colour == PieceUtil.White ? whitePieces : blackPieces).Remove(targetPiece);
@@ -76,5 +79,6 @@ public class GameManager : MonoBehaviour
         }
 
         if(ColourToMove == PieceUtil.White) fullMoves ++;
+        movesText.text = fullMoves.ToString();
     }
 }
