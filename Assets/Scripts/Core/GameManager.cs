@@ -46,4 +46,35 @@ public class GameManager : MonoBehaviour
                 piece.SetLegalMoves(MoveGenerator.GenerateMoves(piece));
         }
     }
+
+    public void MakeAMove(Move move)
+    {
+        Piece movingPiece = Board.Instance.Cells[move.StartSquare].GetComponent<Square>()._piece;
+        Piece targetPiece = Board.Instance.Cells[move.TargetSquare].GetComponent<Square>()._piece;
+        Board.Instance.Cells[move.StartSquare].GetComponent<Square>().SetPiece(null);
+        Board.Instance.Cells[move.TargetSquare].GetComponent<Square>().SetPiece(movingPiece);
+
+        if(targetPiece != null)
+            (targetPiece.colour == PieceUtil.White ? whitePieces : blackPieces).Remove(targetPiece);
+        else halfMoves++;
+
+        ColourToMove = ColourToMove == PieceUtil.White ? PieceUtil.Black : PieceUtil.White;
+
+        if(GameManager.Instance.ColourToMove == 8)
+        {
+            foreach(Piece piece in whitePieces)
+                piece.SetLegalMoves(MoveGenerator.GenerateMoves(piece));
+            foreach(Piece piece in blackPieces)
+                piece.SetLegalMoves(new Move[0]);
+        }
+        else
+        {
+            foreach(Piece piece in whitePieces)
+                piece.SetLegalMoves(new Move[0]);
+            foreach(Piece piece in blackPieces)
+                piece.SetLegalMoves(MoveGenerator.GenerateMoves(piece));
+        }
+
+        if(ColourToMove == PieceUtil.White) fullMoves ++;
+    }
 }

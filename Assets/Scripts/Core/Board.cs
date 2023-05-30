@@ -114,7 +114,7 @@ public class Board : MonoBehaviour
 
 
         int enPessant = (fenParts[3] == "-") ? -1 : (int)((fenParts[3][0] - 'a')*8 + (Char.GetNumericValue(fenParts[3][1])));
-        GameManager.Instance.Initialize(_whitePieces, _blackPieces, (fenParts[1] == "w") ? 8 : 16, new int[][] { new int[2] { wl, ws }, new int[] { bl, bs } }, enPessant, int.Parse(fenParts[4]), int.Parse(fenParts[5]));
+        GameManager.Instance.Initialize(_whitePieces, _blackPieces, (fenParts[1] == "w") ? PieceUtil.White : PieceUtil.Black, new int[][] { new int[2] { wl, ws }, new int[] { bl, bs } }, enPessant, int.Parse(fenParts[4]), int.Parse(fenParts[5]));
     }
 
     void PlacePiece(int piece, int cellIndex)
@@ -148,7 +148,7 @@ public class Board : MonoBehaviour
         HighlightSquare(heldPiece.position, 2);
 
         if(legalMove)
-            Cells[mouseHoverSquareID].GetComponent<Square>().SetPiece(heldPiece);
+            GameManager.Instance.MakeAMove(new Move(heldPiece.position, mouseHoverSquareID));
         else
             Cells[heldPiece.position].GetComponent<Square>().SetPiece(heldPiece);
         
