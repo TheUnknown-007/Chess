@@ -2,8 +2,11 @@ public class Piece
 {
     public int piece;
     public int position;
+    public int file;
+    public int rank;
     public int colour;
     public int type;
+    public bool moved = false;
 
     public Move[] legalMoves;
 
@@ -14,11 +17,21 @@ public class Piece
         legalMoves = null;
         type = PieceUtil.PieceType(piece);
         colour = PieceUtil.Colour(piece);
+
+        rank = position / 8;
+        file = position - (rank * 8);
     }
 
     public void SetLegalMoves(Move[] moves)
     {
         legalMoves = moves;
+    }
+
+    public void SetPosition(int newPos)
+    {
+        position = newPos;
+        rank = position / 8;
+        file = position - (rank * 8);
     }
 
     public bool IsWhite()

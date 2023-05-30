@@ -139,18 +139,22 @@ public class Board : MonoBehaviour
     void DropPiece()
     {
         bool legalMove = false;
+        Move _move = new Move(0);
         foreach(Move move in heldPiece.legalMoves)
         {
             HighlightSquare(move.TargetSquare, 0);
             if(move.TargetSquare == mouseHoverSquareID)
+            {
                 legalMove = true;
+                _move = move;
+            }
         }
         HighlightSquare(heldPiece.position, 2);
 
         if(legalMove)
-            GameManager.Instance.MakeAMove(new Move(heldPiece.position, mouseHoverSquareID));
+            GameManager.Instance.MakeAMove(_move);
         else
-            Cells[heldPiece.position].GetComponent<Square>().SetPiece(heldPiece);
+            Cells[heldPiece.position].GetComponent<Square>().ShowPiece();
         
         heldPieceSprite.sprite = null;
         heldPiece = null;

@@ -45,4 +45,12 @@ public class Square : MonoBehaviour
     {
         Board.Instance.SetMousePosition(id);
     }
+
+    public void ShowPiece()
+    {
+        if(piece.IsWhite())
+            pieceSprite.sprite = Board.Instance.PieceSpritesWhite[piece.type - 1];
+        else
+            pieceSprite.sprite = Board.Instance.PieceSpritesBlack[piece.type - 1];
+    }
 }
