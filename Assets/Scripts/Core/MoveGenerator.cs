@@ -47,7 +47,17 @@ public class MoveGenerator : MonoBehaviour
 
                     // Blocked by Opponent
                     if(!pieceOnTargetSquare.IsColour(friendlyColor))
-                        if(!findAttackingSquares || pieceOnTargetSquare.type != PieceUtil.King) break;
+                    {
+                        if(!findAttackingSquares)
+                        {
+                            if(pieceOnTargetSquare.type != PieceUtil.King) break;
+                        }
+                        else if(pieceOnTargetSquare.type == PieceUtil.King)
+                        {
+                            int distance = Mathf.Max(Mathf.Abs(pieceOnTargetSquare.file - piece.file), Mathf.Abs(pieceOnTargetSquare.rank - piece.rank));
+                            GameManager.Instance.RegisterCheck(piece, DirectionOffsets[directionIndex], distance, piece.position);
+                        }
+                    }
                 }
 
                 else _moves.Add(new Move(startSquare, targetSquare));
@@ -73,9 +83,11 @@ public class MoveGenerator : MonoBehaviour
                 {
                     Piece targetPiece = Board.Instance.Cells[targetSquare].GetComponent<Square>().piece;
                     if (targetPiece != null)
+                    {
                         if(!targetPiece.IsColour(piece.colour))
                             _moves.Add(new Move(startSquare, targetSquare));
-                    if(targetPiece == null) _moves.Add(new Move(startSquare, targetSquare));
+                    }
+                    else _moves.Add(new Move(startSquare, targetSquare));
                 }
                 if(findAttackingSquares) _moves.Add(new Move(startSquare, targetSquare));
             }
@@ -102,7 +114,11 @@ public class MoveGenerator : MonoBehaviour
                 if(pieceOnTargetSquare != null)
                 {
                     if(findAttackingSquares || !pieceOnTargetSquare.IsColour(piece.colour))
+                    {
+                        if(pieceOnTargetSquare.type == PieceUtil.King)
+                            GameManager.Instance.RegisterCheck(piece);
                         _moves.Add(new Move(startSquare, targetSquare));
+                    }
                 }
                 else 
                     _moves.Add(new Move(startSquare, targetSquare));
@@ -179,6 +195,9 @@ public class MoveGenerator : MonoBehaviour
                     if(piece.rank == (piece.IsColour(PieceUtil.White) ? 6 : 1))
                         _moves.Add(new Move(startSquare, targetSquare, Move.Flag.PromoteToQueen));
                     else _moves.Add(new Move(startSquare, targetSquare));
+                    
+                    if(pieceOnTargetSquare.type == PieceUtil.King)
+                        GameManager.Instance.RegisterCheck(piece);
                 }
             }
             else if(findAttackingSquares) _moves.Add(new Move(startSquare, targetSquare));
@@ -199,12 +218,13 @@ public class MoveGenerator : MonoBehaviour
                     if(piece.rank == (piece.IsColour(PieceUtil.White) ? 6 : 1))
                         _moves.Add(new Move(startSquare, targetSquare, Move.Flag.PromoteToQueen));
                     else _moves.Add(new Move(startSquare, targetSquare));
+
+                    if(pieceOnTargetSquare.type == PieceUtil.King)
+                        GameManager.Instance.RegisterCheck(piece);
                 }
             }
             else if(findAttackingSquares) _moves.Add(new Move(startSquare, targetSquare));
         }
-
-        
 
         return _moves.ToArray();
     }

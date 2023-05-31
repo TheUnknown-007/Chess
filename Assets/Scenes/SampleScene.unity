@@ -6120,7 +6120,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   heldPieceSprite: {fileID: 1998450243}
-  startingPosition: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+  startingPosition: 1nbqk1nr/pppppppp/4r3/4b3/8/8/3P4/3RKR2 b k - 0 1
   Cells:
   - {fileID: 1461654330616288901}
   - {fileID: 1461654331417584588}

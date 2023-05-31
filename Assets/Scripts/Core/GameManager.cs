@@ -18,6 +18,11 @@ public class GameManager : MonoBehaviour
     int[] blackCastleRights;
 
     public bool KingInCheck { get; private set; }
+    public bool KingInDoubleCheck { get; private set; }
+    int kingAttackType;
+    int kingAttackDirection;
+    int kingAttackerDistance;
+    int kingAttackerPosition;
     int legalKingMoves;
     int kingPosition;
 
@@ -52,7 +57,9 @@ public class GameManager : MonoBehaviour
                 piece.SetLegalMoves(new Move[0]);
                 Move[] temp = MoveGenerator.GenerateMoves(piece, true);
                 foreach(Move move in temp)
-                    if(!attackedSquares.ContainsKey(move.TargetSquare)) attackedSquares.Add(move.TargetSquare, move.StartSquare);
+                    if(!attackedSquares.ContainsKey(move.TargetSquare)) 
+                        attackedSquares.Add(move.TargetSquare, move.StartSquare);
+                    else if(kingPosition == move.TargetSquare) KingInDoubleCheck = true;
             }
             foreach(Piece piece in whitePieces)
             {
@@ -61,24 +68,43 @@ public class GameManager : MonoBehaviour
                     legalKingMoves = temp.Length;
                 piece.SetLegalMoves(temp);
             }
+
             KingInCheck = attackedSquares.ContainsKey(kingPosition);
         }
         else
         {
+            foreach(Piece piece in blackPieces)
+                if(piece.pieceInt == (PieceUtil.Black | PieceUtil.King))
+                    kingPosition = piece.position;
             foreach(Piece piece in whitePieces)
             {
                 piece.SetLegalMoves(new Move[0]);
                 Move[] temp = MoveGenerator.GenerateMoves(piece, true);
                 foreach(Move move in temp)
-                    if(!attackedSquares.ContainsKey(move.TargetSquare)) attackedSquares.Add(move.TargetSquare, move.StartSquare);
+                    if(!attackedSquares.ContainsKey(move.TargetSquare))
+                        attackedSquares.Add(move.TargetSquare, move.StartSquare);
+                    else if(kingPosition == move.TargetSquare) KingInDoubleCheck = true;
             }
             foreach(Piece piece in blackPieces)
-                piece.SetLegalMoves(MoveGenerator.GenerateMoves(piece, false));
+            {
+                Move[] temp = MoveGenerator.GenerateMoves(piece, false);
+                if(piece.pieceInt == (PieceUtil.Black | PieceUtil.King))
+                    legalKingMoves = temp.Length;
+                piece.SetLegalMoves(temp);
+            }
+
+            KingInCheck = attackedSquares.ContainsKey(kingPosition);
         }
+
+        foreach(KeyValuePair<int, int> pair in attackedSquares)
+            Board.Instance.HighlightSquare(pair.Key, 5);
     }
 
     public void MakeAMove(Move move)
     {
+        foreach(GameObject square in Board.Instance.Cells)
+            Board.Instance.HighlightSquare(square.GetComponent<Square>().id, 4);
+
         Piece movingPiece = Board.Instance.Cells[move.StartSquare].GetComponent<Square>().piece;
         Piece targetPiece = Board.Instance.Cells[move.TargetSquare].GetComponent<Square>().piece;
         Board.Instance.Cells[move.StartSquare].GetComponent<Square>().SetPiece(null);
@@ -127,10 +153,16 @@ public class GameManager : MonoBehaviour
                 piece.SetLegalMoves(new Move[0]);
                 Move[] temp = MoveGenerator.GenerateMoves(piece, true);
                 foreach(Move move1 in temp)
-                    if(!attackedSquares.ContainsKey(move1.TargetSquare)) attackedSquares.Add(move1.TargetSquare, move.StartSquare);
+                    if(!attackedSquares.ContainsKey(move1.TargetSquare))
+                        attackedSquares.Add(move1.TargetSquare, move1.StartSquare);
             }
             foreach(Piece piece in whitePieces)
-                piece.SetLegalMoves(MoveGenerator.GenerateMoves(piece, false));
+            {
+                Move[] temp = MoveGenerator.GenerateMoves(piece, false);
+                if(piece.pieceInt == (PieceUtil.White | PieceUtil.King))
+                    legalKingMoves = temp.Length;
+                piece.SetLegalMoves(temp);
+            }
         }
         else
         {
@@ -139,14 +171,46 @@ public class GameManager : MonoBehaviour
                 piece.SetLegalMoves(new Move[0]);
                 Move[] temp = MoveGenerator.GenerateMoves(piece, true);
                 foreach(Move move1 in temp)
-                    if(!attackedSquares.ContainsKey(move1.TargetSquare)) attackedSquares.Add(move1.TargetSquare, move.StartSquare);
+                    if(!attackedSquares.ContainsKey(move1.TargetSquare))
+                        attackedSquares.Add(move1.TargetSquare, move1.StartSquare);
             }
             foreach(Piece piece in blackPieces)
-                piece.SetLegalMoves(MoveGenerator.GenerateMoves(piece, false));
+            {
+                Move[] temp = MoveGenerator.GenerateMoves(piece, false);
+                if(piece.pieceInt == (PieceUtil.Black | PieceUtil.King))
+                    legalKingMoves = temp.Length;
+                piece.SetLegalMoves(temp);
+            }
         }
 
         if(ColourToMove == PieceUtil.White) fullMoves ++;
         movesText.text = fullMoves.ToString();
+        foreach(KeyValuePair<int, int> pair in attackedSquares)
+            Board.Instance.HighlightSquare(pair.Key, 5);
+    }
+
+    public void RegisterCheck(Piece attacker, params int[] data)
+    {
+        if(attacker.IsSlidingPiece())
+        {
+            kingAttackType = 0;
+            kingAttackDirection = data[0];
+            kingAttackerDistance = data[1];
+            kingAttackerPosition = attacker.position;
+        }
+        else if(attacker.type == PieceUtil.Knight)
+        {
+            kingAttackType = 1;
+            kingAttackerPosition = attacker.position;
+        }
+        else if(attacker.type == PieceUtil.Pawn)
+        {
+            kingAttackType = 2;
+            kingAttackerPosition = attacker.position;
+        }
+        if(KingInCheck) KingInDoubleCheck = true;
+        else KingInCheck = true;
+        Debug.Log("Check Registered!");
     }
 
     public void Checkmate()
