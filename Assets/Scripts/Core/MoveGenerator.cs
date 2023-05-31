@@ -100,8 +100,10 @@ public class MoveGenerator : MonoBehaviour
             {
                 Piece pieceOnTargetSquare = Board.Instance.Cells[targetSquare].GetComponent<Square>().piece;
                 if(pieceOnTargetSquare != null)
+                {
                     if(findAttackingSquares || !pieceOnTargetSquare.IsColour(piece.colour))
                         _moves.Add(new Move(startSquare, targetSquare));
+                }
                 else 
                     _moves.Add(new Move(startSquare, targetSquare));
             }
