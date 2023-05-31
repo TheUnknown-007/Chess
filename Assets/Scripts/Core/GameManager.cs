@@ -17,6 +17,10 @@ public class GameManager : MonoBehaviour
     int[] whiteCastleRights;
     int[] blackCastleRights;
 
+    public bool KingInCheck { get; private set; }
+    int legalKingMoves;
+    int kingPosition;
+
     public Dictionary<int, int> attackedSquares;
 
     void Awake()
@@ -40,20 +44,32 @@ public class GameManager : MonoBehaviour
         if(GameManager.Instance.ColourToMove == 8)
         {
             foreach(Piece piece in whitePieces)
-                piece.SetLegalMoves(MoveGenerator.GenerateMoves(piece, false));
+                if(piece.pieceInt == (PieceUtil.White | PieceUtil.King))
+                    kingPosition = piece.position;
+
             foreach(Piece piece in blackPieces)
             {
                 piece.SetLegalMoves(new Move[0]);
-                foreach(Move move in MoveGenerator.GenerateMoves(piece, true))
+                Move[] temp = MoveGenerator.GenerateMoves(piece, true);
+                foreach(Move move in temp)
                     if(!attackedSquares.ContainsKey(move.TargetSquare)) attackedSquares.Add(move.TargetSquare, move.StartSquare);
             }
+            foreach(Piece piece in whitePieces)
+            {
+                Move[] temp = MoveGenerator.GenerateMoves(piece, false);
+                if(piece.pieceInt == (PieceUtil.White | PieceUtil.King))
+                    legalKingMoves = temp.Length;
+                piece.SetLegalMoves(temp);
+            }
+            KingInCheck = attackedSquares.ContainsKey(kingPosition);
         }
         else
         {
             foreach(Piece piece in whitePieces)
             {
                 piece.SetLegalMoves(new Move[0]);
-                foreach(Move move in MoveGenerator.GenerateMoves(piece, true))
+                Move[] temp = MoveGenerator.GenerateMoves(piece, true);
+                foreach(Move move in temp)
                     if(!attackedSquares.ContainsKey(move.TargetSquare)) attackedSquares.Add(move.TargetSquare, move.StartSquare);
             }
             foreach(Piece piece in blackPieces)
@@ -106,21 +122,23 @@ public class GameManager : MonoBehaviour
         attackedSquares = new Dictionary<int, int>();
         if(GameManager.Instance.ColourToMove == 8)
         {
-            foreach(Piece piece in whitePieces)
-                piece.SetLegalMoves(MoveGenerator.GenerateMoves(piece, false));
             foreach(Piece piece in blackPieces)
             {
                 piece.SetLegalMoves(new Move[0]);
-                foreach(Move move1 in MoveGenerator.GenerateMoves(piece, true))
+                Move[] temp = MoveGenerator.GenerateMoves(piece, true);
+                foreach(Move move1 in temp)
                     if(!attackedSquares.ContainsKey(move1.TargetSquare)) attackedSquares.Add(move1.TargetSquare, move.StartSquare);
             }
+            foreach(Piece piece in whitePieces)
+                piece.SetLegalMoves(MoveGenerator.GenerateMoves(piece, false));
         }
         else
         {
             foreach(Piece piece in whitePieces)
             {
                 piece.SetLegalMoves(new Move[0]);
-                foreach(Move move1 in MoveGenerator.GenerateMoves(piece, true))
+                Move[] temp = MoveGenerator.GenerateMoves(piece, true);
+                foreach(Move move1 in temp)
                     if(!attackedSquares.ContainsKey(move1.TargetSquare)) attackedSquares.Add(move1.TargetSquare, move.StartSquare);
             }
             foreach(Piece piece in blackPieces)
@@ -129,5 +147,10 @@ public class GameManager : MonoBehaviour
 
         if(ColourToMove == PieceUtil.White) fullMoves ++;
         movesText.text = fullMoves.ToString();
+    }
+
+    public void Checkmate()
+    {
+        Debug.Log("Checkmate!!!");
     }
 }

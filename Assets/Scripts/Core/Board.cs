@@ -15,6 +15,8 @@ public class Board : MonoBehaviour
     [SerializeField] Color HighlightLightColor;
     [SerializeField] Color PickedPieceLight;
     [SerializeField] Color PickedPieceDark;
+    [SerializeField] Color AttackedSquareLight;
+    [SerializeField] Color AttackedSquareDark;
     public Sprite[] PieceSpritesBlack;
     public Sprite[] PieceSpritesWhite;
     
@@ -160,7 +162,7 @@ public class Board : MonoBehaviour
         heldPiece = null;
     }
 
-    void HighlightSquare(int id, int state)
+    public void HighlightSquare(int id, int state)
     {
         Color oriColor = Cells[id].GetComponent<SpriteRenderer>().color;
         switch(state)
@@ -176,6 +178,12 @@ public class Board : MonoBehaviour
                 break;
             case 3:
                 Cells[id].GetComponent<SpriteRenderer>().color = oriColor == LightColor ? PickedPieceLight : PickedPieceDark;
+                break;
+            case 4:
+                Cells[id].GetComponent<SpriteRenderer>().color = oriColor == AttackedSquareLight ? LightColor : DarkColor;
+                break;
+            case 5:
+                Cells[id].GetComponent<SpriteRenderer>().color = oriColor == LightColor ? AttackedSquareLight : AttackedSquareDark;
                 break;
         }
 

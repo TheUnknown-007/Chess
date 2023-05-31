@@ -46,7 +46,8 @@ public class MoveGenerator : MonoBehaviour
                     _moves.Add(new Move(startSquare, targetSquare));
 
                     // Blocked by Opponent
-                    if(!pieceOnTargetSquare.IsColour(friendlyColor)) break;
+                    if(!pieceOnTargetSquare.IsColour(friendlyColor))
+                        if(!findAttackingSquares || pieceOnTargetSquare.type != PieceUtil.King) break;
                 }
 
                 else _moves.Add(new Move(startSquare, targetSquare));
@@ -65,27 +66,25 @@ public class MoveGenerator : MonoBehaviour
             int y = targetSquare / 8;
             int x = targetSquare - y*8;
             int distance = Mathf.Max(Mathf.Abs(y - piece.rank), Mathf.Abs(x - piece.file));
+            
             if(distance == 1 && targetSquare > 0 && targetSquare < 64)
             {
-                string debug = !GameManager.Instance.attackedSquares.ContainsKey(targetSquare) + " ";
                 if(!GameManager.Instance.attackedSquares.ContainsKey(targetSquare))
                 {
                     Piece targetPiece = Board.Instance.Cells[targetSquare].GetComponent<Square>().piece;
-                    debug += $"{targetPiece != null} ";
-                    if(targetPiece != null) debug += $"{!targetPiece.IsColour(piece.colour)} ";
                     if (targetPiece != null)
                         if(!targetPiece.IsColour(piece.colour))
                             _moves.Add(new Move(startSquare, targetSquare));
-                    else _moves.Add(new Move(startSquare, targetSquare));
+                    if(targetPiece == null) _moves.Add(new Move(startSquare, targetSquare));
                 }
                 if(findAttackingSquares) _moves.Add(new Move(startSquare, targetSquare));
-                if(GameManager.Instance.attackedSquares.ContainsKey(targetSquare))
-                    Debug.Log($"{piece.position} : {targetSquare} : {GameManager.Instance.attackedSquares[targetSquare]}");
             }
         }
+
         return _moves.ToArray();
     }
 
+    
     static Move[] GenerateKnightMoves(int startSquare, Piece piece, bool findAttackingSquares)
     {
         List<Move> _moves = new List<Move>();

@@ -1,6 +1,6 @@
 public class Piece
 {
-    public int piece;
+    public int pieceInt;
     public int position;
     public int file;
     public int rank;
@@ -12,11 +12,11 @@ public class Piece
 
     public Piece(int Piece, int Position)
     {
-        piece = Piece;
+        pieceInt = Piece;
         position = Position;
         legalMoves = null;
-        type = PieceUtil.PieceType(piece);
-        colour = PieceUtil.Colour(piece);
+        type = PieceUtil.PieceType(pieceInt);
+        colour = PieceUtil.Colour(pieceInt);
 
         rank = position / 8;
         file = position - (rank * 8);
@@ -46,6 +46,6 @@ public class Piece
 
     public bool IsSlidingPiece()
     {
-        return PieceUtil.IsSlidingPiece(piece);
+        return PieceUtil.IsSlidingPiece(pieceInt);
     }
 }
