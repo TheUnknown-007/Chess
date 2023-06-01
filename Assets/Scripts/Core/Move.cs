@@ -1,12 +1,3 @@
-/* 
-To preserve memory during search, moves are stored as 16 bit numbers.
-The format is as follows:
-
-bit 0-5: from square (0 to 63)
-bit 6-11: to square (0 to 63)
-bit 12-15: flag
-*/
-
 public readonly struct Move {
 
 	public readonly struct Flag {

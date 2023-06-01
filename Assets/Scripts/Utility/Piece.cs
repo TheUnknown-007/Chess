@@ -6,7 +6,8 @@ public class Piece
     public int rank;
     public int colour;
     public int type;
-    public bool moved = false;
+    public bool isPinned;
+    public int[] pinLine;
 
     public Move[] legalMoves;
 
@@ -48,4 +49,15 @@ public class Piece
     {
         return PieceUtil.IsSlidingPiece(pieceInt);
     }
+
+    public bool IsRookOrQueen()
+    {
+        return PieceUtil.IsRookOrQueen(pieceInt);
+    }
+
+    public bool IsBishopOrQueen()
+    {
+        return PieceUtil.IsBishopOrQueen(pieceInt);
+    }
+
 }

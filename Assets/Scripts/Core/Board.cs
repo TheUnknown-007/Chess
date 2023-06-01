@@ -8,15 +8,15 @@ public class Board : MonoBehaviour
 
     [SerializeField] SpriteRenderer heldPieceSprite;
     [SerializeField] string startingPosition;
-    public GameObject[] Cells;
+    public Square[] Cells;
     [SerializeField] Color DarkColor;
     [SerializeField] Color LightColor;
     [SerializeField] Color HighlightDarkColor;
     [SerializeField] Color HighlightLightColor;
     [SerializeField] Color PickedPieceLight;
     [SerializeField] Color PickedPieceDark;
-    [SerializeField] Color AttackedSquareLight;
-    [SerializeField] Color AttackedSquareDark;
+    [SerializeField] Color DebugSquareLight;
+    [SerializeField] Color DebugSquareDark;
     public Sprite[] PieceSpritesBlack;
     public Sprite[] PieceSpritesWhite;
     
@@ -50,7 +50,7 @@ public class Board : MonoBehaviour
             for(int file = 0; file < 8; file++)
             {
                 int index = rank*8 + file;
-                Cells[index].GetComponent<Square>().Initialize(index, ((file+rank) % 2 == 0) ? DarkColor : LightColor);
+                Cells[index].Initialize(index, ((file+rank) % 2 == 0) ? DarkColor : LightColor);
             }   
         }
         PlacePieces(startingPosition);
@@ -126,7 +126,7 @@ public class Board : MonoBehaviour
             _whitePieces.Add(p);
         else
             _blackPieces.Add(p);
-        Cells[cellIndex].GetComponent<Square>().SetPiece(p);
+        Cells[cellIndex].SetPiece(p);
     }
 
     public void HoldPiece(Piece piece, int position)
@@ -156,7 +156,7 @@ public class Board : MonoBehaviour
         if(legalMove)
             GameManager.Instance.MakeAMove(_move);
         else
-            Cells[heldPiece.position].GetComponent<Square>().ShowPiece();
+            Cells[heldPiece.position].ShowPiece();
         
         heldPieceSprite.sprite = null;
         heldPiece = null;
@@ -180,10 +180,10 @@ public class Board : MonoBehaviour
                 Cells[id].GetComponent<SpriteRenderer>().color = oriColor == LightColor ? PickedPieceLight : PickedPieceDark;
                 break;
             case 4:
-                Cells[id].GetComponent<SpriteRenderer>().color = oriColor == AttackedSquareLight ? LightColor : DarkColor;
+                Cells[id].GetComponent<SpriteRenderer>().color = oriColor == DebugSquareLight ? LightColor : DarkColor;
                 break;
             case 5:
-                Cells[id].GetComponent<SpriteRenderer>().color = oriColor == LightColor ? AttackedSquareLight : AttackedSquareDark;
+                Cells[id].GetComponent<SpriteRenderer>().color = oriColor == LightColor ? DebugSquareLight : DebugSquareDark;
                 break;
         }
 

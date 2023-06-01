@@ -11,7 +11,8 @@ public class DebugInspector : Editor
     string varTypeName;
     string iterativeTypeName;
     int index;
-    int targetSquare;
+    int data1;
+    int data2;
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();
@@ -22,10 +23,15 @@ public class DebugInspector : Editor
         // varTypeName = EditorGUILayout.TextField(varTypeName);
         // iterativeTypeName = EditorGUILayout.TextField(iterativeTypeName);
         // index = EditorGUILayout.IntField(index);
-        targetSquare = EditorGUILayout.IntField(targetSquare);
+        data1 = EditorGUILayout.IntField(data1);
+        data2 = EditorGUILayout.IntField(data2);
         
         if(GUILayout.Button("Get Attacked Square"))
-            debugger.GetAttackedSquare(targetSquare);
+            debugger.GetAttackedSquare(data1);
+        if(GUILayout.Button("Check if Piece is Pinned"))
+            debugger.GetPinnedPiece(data1);
+        if(GUILayout.Button("Check Square in Pin Line"))
+            debugger.CheckIfPinnedPieceLegalMove(data1, data2);
         if(GUILayout.Button("Get Variable"))
             debugger.GetVariable(typeName, varName, varTypeName, iterativeTypeName, index);
     }

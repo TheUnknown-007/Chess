@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using static PrecomputedMoveData;
 
 using UnityEngine;
@@ -6,6 +7,58 @@ using UnityEngine;
 public class MoveGenerator : MonoBehaviour
 {
     List<Move> moves;
+
+    public static void SetPinnedPieces(Piece kingPiece)
+    {
+        int startSquare = kingPiece.position;
+        
+        for(int directionIndex = 0; directionIndex < 8; directionIndex++)
+        {
+            Piece pieceToPin = null;
+            for(int n = 0; n<NumSquaresToEdge[startSquare][directionIndex]; n++)
+            {
+                int targetSquare = startSquare + DirectionOffsets[directionIndex] * (n+1);
+                Piece pieceOnTargetSquare = Board.Instance.Cells[targetSquare].piece;
+                if(pieceOnTargetSquare == null) continue;
+                if(pieceToPin == null)
+                    pieceToPin = pieceOnTargetSquare;
+
+                else
+                {
+                    if(!pieceOnTargetSquare.IsColour(kingPiece.colour) && (pieceOnTargetSquare.IsRookOrQueen() || pieceOnTargetSquare.IsBishopOrQueen()))
+                    {
+                        if(directionIndex < 4)
+                        { 
+                            if (pieceOnTargetSquare.IsRookOrQueen())
+                            {
+                                pieceToPin.isPinned = true;
+                                List<int> temp = new List<int>();
+                                temp.Add(targetSquare);
+                                for(int m = 1; m < n; m++)
+                                    temp.Add(pieceToPin.position + (DirectionOffsets[directionIndex]*m));
+                                pieceToPin.pinLine = temp.ToArray();
+                            }
+                        }
+                        else if (pieceOnTargetSquare.IsBishopOrQueen()) 
+                        {
+                                pieceToPin.isPinned = true;
+                                List<int> temp = new List<int>();
+                                temp.Add(targetSquare);
+                                for(int m = 1; m < n; m++)
+                                    temp.Add(pieceToPin.position + (DirectionOffsets[directionIndex]*m));
+                                pieceToPin.pinLine = temp.ToArray();
+                        }
+                    }
+                    else goto EndLoop;
+                    
+                }
+            }
+
+            EndLoop:
+            _ = false;
+        }
+        
+    }
 
     public static Move[] GenerateMoves(Piece piece, bool findAttackingSquares)
     {
@@ -22,6 +75,8 @@ public class MoveGenerator : MonoBehaviour
 
     static Move[] GenerateSlidingMoves(int startSquare, Piece piece, bool findAttackingSquares)
     {
+        if(!findAttackingSquares && GameManager.Instance.KingInCheck && GameManager.Instance.checkResolveSquares.Count == 0) return new Move[0];
+
         List<Move> _moves = new List<Move>();
         int friendlyColor = piece.colour;
         int startDirOffset = piece.type == PieceUtil.Bishop ? 4 : 0;
@@ -32,7 +87,7 @@ public class MoveGenerator : MonoBehaviour
             for(int n = 0; n<NumSquaresToEdge[startSquare][directionIndex]; n++)
             {
                 int targetSquare = startSquare + DirectionOffsets[directionIndex] * (n+1);
-                Piece pieceOnTargetSquare = Board.Instance.Cells[targetSquare].GetComponent<Square>().piece;
+                Piece pieceOnTargetSquare = Board.Instance.Cells[targetSquare].piece;
 
                 if(pieceOnTargetSquare != null)
                 {
@@ -43,24 +98,30 @@ public class MoveGenerator : MonoBehaviour
                         break;
                     }
 
-                    _moves.Add(new Move(startSquare, targetSquare));
+                    if(!findAttackingSquares)
+                    {
+                        if((!piece.isPinned || piece.pinLine.Contains(targetSquare)) && (!GameManager.Instance.KingInCheck || GameManager.Instance.checkResolveSquares.Contains(targetSquare)))
+                            _moves.Add(new Move(startSquare, targetSquare));
+                    }
+                    else _moves.Add(new Move(startSquare, targetSquare));
 
                     // Blocked by Opponent
                     if(!pieceOnTargetSquare.IsColour(friendlyColor))
                     {
-                        if(!findAttackingSquares)
-                        {
+                        if(!findAttackingSquares) break;
+                        else {
                             if(pieceOnTargetSquare.type != PieceUtil.King) break;
-                        }
-                        else if(pieceOnTargetSquare.type == PieceUtil.King)
-                        {
-                            int distance = Mathf.Max(Mathf.Abs(pieceOnTargetSquare.file - piece.file), Mathf.Abs(pieceOnTargetSquare.rank - piece.rank));
-                            GameManager.Instance.RegisterCheck(piece, DirectionOffsets[directionIndex], distance, piece.position);
+                            else {
+                                int distance = Mathf.Max(Mathf.Abs(pieceOnTargetSquare.file - piece.file), Mathf.Abs(pieceOnTargetSquare.rank - piece.rank));
+                                GameManager.Instance.RegisterCheck(piece, DirectionOffsets[directionIndex], distance, piece.position);
+                            }
                         }
                     }
                 }
 
-                else _moves.Add(new Move(startSquare, targetSquare));
+                else if(findAttackingSquares) _moves.Add(new Move(startSquare, targetSquare));
+                else if(!GameManager.Instance.KingInCheck || GameManager.Instance.checkResolveSquares.Contains(targetSquare))
+                    if(!piece.isPinned || piece.pinLine.Contains(targetSquare)) _moves.Add(new Move(startSquare, targetSquare));
             }
         }
 
@@ -81,7 +142,7 @@ public class MoveGenerator : MonoBehaviour
             {
                 if(!GameManager.Instance.attackedSquares.ContainsKey(targetSquare))
                 {
-                    Piece targetPiece = Board.Instance.Cells[targetSquare].GetComponent<Square>().piece;
+                    Piece targetPiece = Board.Instance.Cells[targetSquare].piece;
                     if (targetPiece != null)
                     {
                         if(!targetPiece.IsColour(piece.colour))
@@ -95,10 +156,11 @@ public class MoveGenerator : MonoBehaviour
 
         return _moves.ToArray();
     }
-
     
     static Move[] GenerateKnightMoves(int startSquare, Piece piece, bool findAttackingSquares)
     {
+        if(!findAttackingSquares && GameManager.Instance.KingInCheck && GameManager.Instance.checkResolveSquares.Count == 0) return new Move[0];
+
         List<Move> _moves = new List<Move>();
         int[] knightOffsets = new int[] { 15, 17, -17, -15, 10, -6, 6, -10 };
         foreach(int offset in knightOffsets)
@@ -110,18 +172,20 @@ public class MoveGenerator : MonoBehaviour
             int maxCoordMoveDst = System.Math.Max (System.Math.Abs (piece.file - knightSquareX), System.Math.Abs (piece.rank - knightSquareY));
             if(maxCoordMoveDst == 2)
             {
-                Piece pieceOnTargetSquare = Board.Instance.Cells[targetSquare].GetComponent<Square>().piece;
+                Piece pieceOnTargetSquare = Board.Instance.Cells[targetSquare].piece;
                 if(pieceOnTargetSquare != null)
                 {
                     if(findAttackingSquares || !pieceOnTargetSquare.IsColour(piece.colour))
                     {
                         if(pieceOnTargetSquare.type == PieceUtil.King)
                             GameManager.Instance.RegisterCheck(piece);
-                        _moves.Add(new Move(startSquare, targetSquare));
+                        if(findAttackingSquares || !GameManager.Instance.KingInCheck || GameManager.Instance.checkResolveSquares.Contains(targetSquare))
+                            if(!piece.isPinned || piece.pinLine.Contains(targetSquare)) _moves.Add(new Move(startSquare, targetSquare));
                     }
                 }
-                else 
-                    _moves.Add(new Move(startSquare, targetSquare));
+                else if(findAttackingSquares) _moves.Add(new Move(startSquare, targetSquare));
+                else if(!GameManager.Instance.KingInCheck || GameManager.Instance.checkResolveSquares.Contains(targetSquare))
+                    if(!piece.isPinned || piece.pinLine.Contains(targetSquare)) _moves.Add(new Move(startSquare, targetSquare));
             }
         }
 
@@ -130,6 +194,8 @@ public class MoveGenerator : MonoBehaviour
 
     static Move[] GeneratePawnMoves(int startSquare, Piece piece, bool findAttackingSquares)
     {
+        if(!findAttackingSquares && GameManager.Instance.KingInCheck && GameManager.Instance.checkResolveSquares.Count == 0) return new Move[0];
+
         List<Move> _moves = new List<Move>();
 
         int targetSquare;
@@ -140,19 +206,25 @@ public class MoveGenerator : MonoBehaviour
         if(!findAttackingSquares)
         {
             targetSquare = startSquare + (piece.IsColour(PieceUtil.White) ? 8 : -8);
-            pieceOnTargetSquare = Board.Instance.Cells[targetSquare].GetComponent<Square>().piece;
+            pieceOnTargetSquare = Board.Instance.Cells[targetSquare].piece;
             if(pieceOnTargetSquare == null)
             {
-                if(piece.rank == 7)
-                    _moves.Add(new Move(startSquare, targetSquare, Move.Flag.PromoteToQueen));
-                else _moves.Add(new Move(startSquare, targetSquare));
+                if(!GameManager.Instance.KingInCheck || GameManager.Instance.checkResolveSquares.Contains(targetSquare))
+                {
+                    if(!piece.isPinned || piece.pinLine.Contains(targetSquare))
+                    {
+                        if(piece.rank == 7)
+                            _moves.Add(new Move(startSquare, targetSquare, Move.Flag.PromoteToQueen));
+                        else _moves.Add(new Move(startSquare, targetSquare));
+                    }
+                }
             }
 
-            if(!piece.moved)
+            if(piece.rank == ((piece.IsColour(PieceUtil.White) ? 1 : 6)) && Board.Instance.Cells[targetSquare].piece == null)
             {
                 targetSquare = startSquare + (piece.IsColour(PieceUtil.White) ? 16 : -16);
-                pieceOnTargetSquare = Board.Instance.Cells[targetSquare].GetComponent<Square>().piece;
-                if(pieceOnTargetSquare == null)
+                pieceOnTargetSquare = Board.Instance.Cells[targetSquare].piece;
+                if(pieceOnTargetSquare == null && !piece.isPinned && (!GameManager.Instance.KingInCheck || GameManager.Instance.checkResolveSquares.Contains(targetSquare)))
                     _moves.Add(new Move(startSquare, targetSquare, Move.Flag.PawnTwoForward));
             }
 
@@ -160,24 +232,26 @@ public class MoveGenerator : MonoBehaviour
             y = targetSquare / 8;
             x = targetSquare - y*8;
             distance = Mathf.Max(Mathf.Abs(y - piece.rank), Mathf.Abs(x - piece.file));
-            if(distance == 1)
+            if(distance == 1 && (!piece.isPinned || piece.pinLine.Contains(targetSquare)))
             {
                 int actualTargetSquare = targetSquare + (piece.IsColour(PieceUtil.White) ? 8 : -8);
-                pieceOnTargetSquare = Board.Instance.Cells[targetSquare].GetComponent<Square>().piece;
+                pieceOnTargetSquare = Board.Instance.Cells[targetSquare].piece;
                 if(pieceOnTargetSquare != null && pieceOnTargetSquare.type == PieceUtil.Pawn && !pieceOnTargetSquare.IsColour(piece.colour) && GameManager.Instance.enPessantSquare == actualTargetSquare)
-                    _moves.Add(new Move(startSquare, actualTargetSquare, Move.Flag.EnPassantCapture));
+                    if(!GameManager.Instance.KingInCheck || GameManager.Instance.checkResolveSquares.Contains(targetSquare))
+                        _moves.Add(new Move(startSquare, actualTargetSquare, Move.Flag.EnPassantCapture));
             }
 
             targetSquare = startSquare - 1;
             y = targetSquare / 8;
             x = targetSquare - y*8;
             distance = Mathf.Max(Mathf.Abs(y - piece.rank), Mathf.Abs(x - piece.file));
-            if(distance == 1)
+            if(distance == 1 && !piece.isPinned || piece.pinLine.Contains(targetSquare))
             {
                 int actualTargetSquare = targetSquare + (piece.IsColour(PieceUtil.White) ? 8 : -8);
-                pieceOnTargetSquare = Board.Instance.Cells[targetSquare].GetComponent<Square>().piece;
+                pieceOnTargetSquare = Board.Instance.Cells[targetSquare].piece;
                 if(pieceOnTargetSquare != null && pieceOnTargetSquare.type == PieceUtil.Pawn && !pieceOnTargetSquare.IsColour(piece.colour) && GameManager.Instance.enPessantSquare == actualTargetSquare)
-                    _moves.Add(new Move(startSquare, actualTargetSquare, Move.Flag.EnPassantCapture));
+                    if(!GameManager.Instance.KingInCheck || GameManager.Instance.checkResolveSquares.Contains(targetSquare))
+                        _moves.Add(new Move(startSquare, actualTargetSquare, Move.Flag.EnPassantCapture));
             }
         }
         
@@ -187,14 +261,21 @@ public class MoveGenerator : MonoBehaviour
         distance = Mathf.Max(Mathf.Abs(y - piece.rank), Mathf.Abs(x - piece.file));
         if(distance == 1)
         {
-            pieceOnTargetSquare = Board.Instance.Cells[targetSquare].GetComponent<Square>().piece;
+            pieceOnTargetSquare = Board.Instance.Cells[targetSquare].piece;
             if(pieceOnTargetSquare != null)
             {
                 if(!pieceOnTargetSquare.IsColour(piece.colour))
                 {
-                    if(piece.rank == (piece.IsColour(PieceUtil.White) ? 6 : 1))
-                        _moves.Add(new Move(startSquare, targetSquare, Move.Flag.PromoteToQueen));
-                    else _moves.Add(new Move(startSquare, targetSquare));
+                    if(!GameManager.Instance.KingInCheck || GameManager.Instance.checkResolveSquares[0] == targetSquare)
+                    {
+                        if(!piece.isPinned || piece.pinLine.Contains(targetSquare))
+                        {
+                            if(piece.rank == (piece.IsColour(PieceUtil.White) ? 6 : 1))
+                                _moves.Add(new Move(startSquare, targetSquare, Move.Flag.PromoteToQueen));
+                            else _moves.Add(new Move(startSquare, targetSquare));
+                        }
+                        
+                    }
                     
                     if(pieceOnTargetSquare.type == PieceUtil.King)
                         GameManager.Instance.RegisterCheck(piece);
@@ -210,14 +291,20 @@ public class MoveGenerator : MonoBehaviour
         distance = Mathf.Max(Mathf.Abs(y - piece.rank), Mathf.Abs(x - piece.file));
         if(distance == 1)
         {
-            pieceOnTargetSquare = Board.Instance.Cells[targetSquare].GetComponent<Square>().piece;
+            pieceOnTargetSquare = Board.Instance.Cells[targetSquare].piece;
             if(pieceOnTargetSquare != null)
             {
                 if(!pieceOnTargetSquare.IsColour(piece.colour))
                 {
-                    if(piece.rank == (piece.IsColour(PieceUtil.White) ? 6 : 1))
-                        _moves.Add(new Move(startSquare, targetSquare, Move.Flag.PromoteToQueen));
-                    else _moves.Add(new Move(startSquare, targetSquare));
+                    if(!GameManager.Instance.KingInCheck || GameManager.Instance.checkResolveSquares[0] == targetSquare)
+                    {
+                        if(!piece.isPinned || piece.pinLine.Contains(targetSquare))
+                        {
+                            if(piece.rank == (piece.IsColour(PieceUtil.White) ? 6 : 1))
+                                _moves.Add(new Move(startSquare, targetSquare, Move.Flag.PromoteToQueen));
+                            else _moves.Add(new Move(startSquare, targetSquare));
+                        }
+                    }
 
                     if(pieceOnTargetSquare.type == PieceUtil.King)
                         GameManager.Instance.RegisterCheck(piece);
@@ -228,4 +315,6 @@ public class MoveGenerator : MonoBehaviour
 
         return _moves.ToArray();
     }
+
+
 }
