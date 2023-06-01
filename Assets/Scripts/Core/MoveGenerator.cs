@@ -140,7 +140,7 @@ public class MoveGenerator : MonoBehaviour
             
             if(distance == 1 && targetSquare > 0 && targetSquare < 64)
             {
-                if(!GameManager.Instance.attackedSquares.ContainsKey(targetSquare))
+                if(!GameManager.Instance.attackedSquares.Contains(targetSquare))
                 {
                     Piece targetPiece = Board.Instance.Cells[targetSquare].piece;
                     if (targetPiece != null)
@@ -152,6 +152,22 @@ public class MoveGenerator : MonoBehaviour
                 }
                 if(findAttackingSquares) _moves.Add(new Move(startSquare, targetSquare));
             }
+        }
+
+
+        int[] castleRights = piece.IsColour(PieceUtil.White) ? GameManager.Instance.whiteCastleRights : GameManager.Instance.blackCastleRights;
+        int moveColor = piece.IsColour(PieceUtil.White) ? 0 : 1;
+        if(!findAttackingSquares && !GameManager.Instance.KingInCheck)
+        {
+            bool emptyAndNotAttackedLong = true;
+            bool emptyAndNotAttackedShort = true;
+            foreach(int square in CastleSquares[moveColor][0])
+                if(Board.Instance.Cells[square].piece != null || GameManager.Instance.attackedSquares.Contains(square)) emptyAndNotAttackedLong = false;
+            foreach(int square in CastleSquares[moveColor][1])
+                if(Board.Instance.Cells[square].piece != null || GameManager.Instance.attackedSquares.Contains(square)) emptyAndNotAttackedShort = false;
+
+            if(emptyAndNotAttackedLong && castleRights[0] == 1) _moves.Add(new Move(startSquare, startSquare - 2, Move.Flag.Castling));
+            if(emptyAndNotAttackedShort && castleRights[1] == 1) _moves.Add(new Move(startSquare, startSquare + 2, Move.Flag.Castling));
         }
 
         return _moves.ToArray();
@@ -245,7 +261,7 @@ public class MoveGenerator : MonoBehaviour
             y = targetSquare / 8;
             x = targetSquare - y*8;
             distance = Mathf.Max(Mathf.Abs(y - piece.rank), Mathf.Abs(x - piece.file));
-            if(distance == 1 && !piece.isPinned || piece.pinLine.Contains(targetSquare))
+            if(distance == 1 && (!piece.isPinned || piece.pinLine.Contains(targetSquare)))
             {
                 int actualTargetSquare = targetSquare + (piece.IsColour(PieceUtil.White) ? 8 : -8);
                 pieceOnTargetSquare = Board.Instance.Cells[targetSquare].piece;

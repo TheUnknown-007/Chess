@@ -15,8 +15,8 @@ public class Debugger : MonoBehaviour
 
     public void GetAttackedSquare(int targetSquare)
     {
-        Debug.Log(GameManager.Instance.attackedSquares.ContainsKey(targetSquare));
-        if(GameManager.Instance.attackedSquares.ContainsKey(targetSquare))
+        Debug.Log(GameManager.Instance.attackedSquares.Contains(targetSquare));
+        if(GameManager.Instance.attackedSquares.Contains(targetSquare))
             Debug.Log(GameManager.Instance.attackedSquares[targetSquare]);
     }
 

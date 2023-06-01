@@ -56,6 +56,19 @@ public class Board : MonoBehaviour
         PlacePieces(startingPosition);
     }
 
+    public void PrepareBoard(string FEN)
+    {
+        for(int rank = 0; rank < 8; rank++)
+        {
+            for(int file = 0; file < 8; file++)
+            {
+                int index = rank*8 + file;
+                Cells[index].Initialize(index, ((file+rank) % 2 == 0) ? DarkColor : LightColor);
+            }   
+        }
+        PlacePieces(FEN);
+    }
+
     void PlacePieces(string FEN)
     {
         var SymbolToPiece = new Dictionary<char, int>() {
