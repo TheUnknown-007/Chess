@@ -229,18 +229,18 @@ public class MoveGenerator : MonoBehaviour
                 {
                     if(!piece.isPinned || piece.pinLine.Contains(targetSquare))
                     {
-                        if(piece.rank == 7)
+                        if(piece.rank == (piece.IsColour(PieceUtil.White) ? 6 : 1))
                             _moves.Add(new Move(startSquare, targetSquare, Move.Flag.PromoteToQueen));
                         else _moves.Add(new Move(startSquare, targetSquare));
                     }
                 }
             }
 
-            if(piece.rank == ((piece.IsColour(PieceUtil.White) ? 1 : 6)) && Board.Instance.Cells[targetSquare].piece == null)
+            if(piece.rank == (piece.IsColour(PieceUtil.White) ? 1 : 6) && Board.Instance.Cells[targetSquare].piece == null)
             {
                 targetSquare = startSquare + (piece.IsColour(PieceUtil.White) ? 16 : -16);
                 pieceOnTargetSquare = Board.Instance.Cells[targetSquare].piece;
-                if(pieceOnTargetSquare == null && !piece.isPinned && (!GameManager.Instance.KingInCheck || GameManager.Instance.checkResolveSquares.Contains(targetSquare)))
+                if(pieceOnTargetSquare == null && (!piece.isPinned || piece.pinLine.Contains(targetSquare)) && (!GameManager.Instance.KingInCheck || GameManager.Instance.checkResolveSquares.Contains(targetSquare)))
                     _moves.Add(new Move(startSquare, targetSquare, Move.Flag.PawnTwoForward));
             }
 

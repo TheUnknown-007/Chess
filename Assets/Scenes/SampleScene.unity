@@ -6141,7 +6141,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   heldPieceSprite: {fileID: 1998450243}
-  startingPosition: q4k2/1P2r2b/2R3R1/4B3/p3K3/3P4/4P3/1q2n3 w - - 0 1
+  startingPosition: r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1
   Cells:
   - {fileID: 1461654330616288904}
   - {fileID: 1461654331417584592}
@@ -6286,6 +6286,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   movesText: {fileID: 273246975}
   ColourToMove: 8
+  attackedSquares: 
 --- !u!212 &1461654330942456741
 SpriteRenderer:
   m_ObjectHideFlags: 0

@@ -106,7 +106,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        if(legalMoves == 0) Checkmate();
+        if(legalMoves == 0) Checkmate(KingInCheck);
     }
 
     public void MakeAMove(Move move)
@@ -279,7 +279,7 @@ public class GameManager : MonoBehaviour
 
         if(ColourToMove == PieceUtil.White) fullMoves ++;
         movesText.text = fullMoves.ToString();
-        if(legalMoves == 0) Checkmate();
+        if(legalMoves == 0) Checkmate(KingInCheck);
     }
 
     public void RegisterCheck(Piece attacker, params int[] data)
@@ -297,8 +297,9 @@ public class GameManager : MonoBehaviour
         KingInCheck = true;
     }
 
-    public void Checkmate()
+    public void Checkmate(bool stalemate)
     {
-        Debug.Log("Checkmate!!!");
+        if(!stalemate) Debug.Log("Checkmate!!!");
+        else Debug.Log("Stalemate :l");
     }
 }
