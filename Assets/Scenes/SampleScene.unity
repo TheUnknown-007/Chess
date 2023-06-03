@@ -6141,7 +6141,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   heldPieceSprite: {fileID: 1998450243}
-  startingPosition: r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1
+  startingPosition: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
   Cells:
   - {fileID: 1461654330616288904}
   - {fileID: 1461654331417584592}
@@ -6209,10 +6209,10 @@ MonoBehaviour:
   - {fileID: 1461654330479575040}
   DarkColor: {r: 0.81960785, g: 0.54509807, b: 0.2784314, a: 1}
   LightColor: {r: 1, g: 0.80784315, b: 0.61960787, a: 1}
-  HighlightDarkColor: {r: 1, g: 0.8072865, b: 0.023584902, a: 1}
-  HighlightLightColor: {r: 1, g: 0.9435848, b: 0.1462264, a: 1}
-  PickedPieceLight: {r: 0.5283019, g: 0.17916325, b: 0, a: 1}
-  PickedPieceDark: {r: 0.7529412, g: 0.18172641, b: 0.10980391, a: 1}
+  HighlightDarkColor: {r: 0.9056604, g: 0.75080013, b: 0.2947668, a: 1}
+  HighlightLightColor: {r: 1, g: 0.9455438, b: 0.6650944, a: 1}
+  PickedPieceLight: {r: 0.7830189, g: 0.42507914, b: 0.24007656, a: 1}
+  PickedPieceDark: {r: 0.9622642, g: 0.38693935, b: 0.29503384, a: 1}
   DebugSquareLight: {r: 0.46369535, g: 1, b: 0.3066038, a: 1}
   DebugSquareDark: {r: 0.0075420574, g: 0.4339623, b: 0, a: 1}
   PieceSpritesBlack:
