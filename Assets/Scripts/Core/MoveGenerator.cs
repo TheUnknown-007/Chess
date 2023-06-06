@@ -183,19 +183,27 @@ public class MoveGenerator : MonoBehaviour
         {
             int targetSquare = startSquare + offset;
             if(targetSquare < 0 || targetSquare > 64) continue;
+            string debug = $"{targetSquare}\n";
             int knightSquareY = targetSquare / 8;
 			int knightSquareX = targetSquare - (knightSquareY * 8);
             int maxCoordMoveDst = System.Math.Max (System.Math.Abs (piece.file - knightSquareX), System.Math.Abs (piece.rank - knightSquareY));
             if(maxCoordMoveDst == 2)
             {
                 Piece pieceOnTargetSquare = Board.Instance.Cells[targetSquare].piece;
+                debug += (pieceOnTargetSquare != null) + " ";
+                debug += findAttackingSquares + " ";
                 if(pieceOnTargetSquare != null)
                 {
-                    if(findAttackingSquares || !pieceOnTargetSquare.IsColour(piece.colour))
+                    debug += pieceOnTargetSquare.IsColour(piece.colour) + " ";
+                    if(findAttackingSquares)
                     {
-                        if(pieceOnTargetSquare.type == PieceUtil.King)
+                        if(pieceOnTargetSquare.type == PieceUtil.King && !pieceOnTargetSquare.IsColour(piece.colour))
                             GameManager.Instance.RegisterCheck(piece);
-                        if(findAttackingSquares || !GameManager.Instance.KingInCheck || GameManager.Instance.checkResolveSquares.Contains(targetSquare))
+                        _moves.Add(new Move(startSquare, targetSquare));
+                    }
+                    else if(!pieceOnTargetSquare.IsColour(piece.colour))
+                    {
+                        if(!GameManager.Instance.KingInCheck || GameManager.Instance.checkResolveSquares.Contains(targetSquare))
                             if(!piece.isPinned || piece.pinLine.Contains(targetSquare)) _moves.Add(new Move(startSquare, targetSquare));
                     }
                 }
@@ -203,6 +211,8 @@ public class MoveGenerator : MonoBehaviour
                 else if(!GameManager.Instance.KingInCheck || GameManager.Instance.checkResolveSquares.Contains(targetSquare))
                     if(!piece.isPinned || piece.pinLine.Contains(targetSquare)) _moves.Add(new Move(startSquare, targetSquare));
             }
+
+            if(startSquare == 38) Debug.Log(debug);
         }
 
         return _moves.ToArray();

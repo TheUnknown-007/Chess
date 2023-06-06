@@ -8,8 +8,8 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] TMP_Text movesText;
 
-    List<Piece> whitePieces;
-    List<Piece> blackPieces;
+    public List<Piece> whitePieces;
+    public List<Piece> blackPieces;
     [HideInInspector] public int ColourToMove = 8;
     int halfMoves;
     int fullMoves;
@@ -47,6 +47,8 @@ public class GameManager : MonoBehaviour
 
         attackedSquares = new List<int>();
 
+        Board.Instance.UpdateVisual();
+
         foreach(Piece piece in blackPieces)
         {
             if(piece.type == PieceUtil.King) blackKingPiece = piece;
@@ -55,7 +57,6 @@ public class GameManager : MonoBehaviour
                 if(piece.position < 60) blackLongRook = piece;
                 else blackShortRook = piece;
             }
-            piece.isPinned = false;
         }
 
         foreach(Piece piece in whitePieces)
@@ -66,45 +67,9 @@ public class GameManager : MonoBehaviour
                 if(piece.position < 4) whiteLongRook = piece;
                 else whiteShortRook = piece;
             }
-            piece.isPinned = false;
         }
 
-        if(GameManager.Instance.ColourToMove == 8)
-        {
-            foreach(Piece piece in blackPieces)
-            {
-                piece.SetLegalMoves(new Move[0]);
-                Move[] temp = MoveGenerator.GenerateMoves(piece, true);
-                foreach(Move move in temp)
-                    if(!attackedSquares.Contains(move.TargetSquare)) 
-                        attackedSquares.Add(move.TargetSquare);
-            }
-            MoveGenerator.SetPinnedPieces(whiteKingPiece);
-            foreach(Piece piece in whitePieces)
-            {
-                Move[] temp = MoveGenerator.GenerateMoves(piece, false);
-                legalMoves += temp.Length;
-                piece.SetLegalMoves(temp);
-            }
-        }
-        else
-        {
-            foreach(Piece piece in whitePieces)
-            {
-                piece.SetLegalMoves(new Move[0]);
-                Move[] temp = MoveGenerator.GenerateMoves(piece, true);
-                foreach(Move move in temp)
-                    if(!attackedSquares.Contains(move.TargetSquare))
-                        attackedSquares.Add(move.TargetSquare);
-            }
-            MoveGenerator.SetPinnedPieces(blackKingPiece);
-            foreach(Piece piece in blackPieces)
-            {
-                Move[] temp = MoveGenerator.GenerateMoves(piece, false);
-                legalMoves += temp.Length;
-                piece.SetLegalMoves(temp);
-            }
-        }
+        GetLegalMoves();
 
         if(legalMoves == 0) Checkmate(!KingInCheck);
     }
@@ -132,29 +97,22 @@ public class GameManager : MonoBehaviour
                 (ColourToMove == 8 ? whiteCastleRights : blackCastleRights)[0] = 0;
             else (ColourToMove == 8 ? whiteCastleRights : blackCastleRights)[1] = 0;
         }
-
-        else if(targetPiece != null && targetPiece.type == PieceUtil.Rook)
+        if(targetPiece != null && targetPiece.type == PieceUtil.Rook)
         {
             if(move.TargetSquare < (ColourToMove == 8 ? blackKingPiece : whiteKingPiece).position)
                 (ColourToMove == 8 ? blackCastleRights : whiteCastleRights)[0] = 0;
             else (ColourToMove == 8 ? blackCastleRights : whiteCastleRights)[1] = 0;
         }
-
-        Board.Instance.Cells[move.StartSquare].SetPiece(null);
         
-
         if(move.MoveFlag == Move.Flag.PawnTwoForward) 
         {
             enPessantSquare = move.TargetSquare + (movingPiece.colour == PieceUtil.White ? -8 : 8);
-            Board.Instance.Cells[move.TargetSquare].SetPiece(movingPiece);
             movingPiece.SetPosition(move.TargetSquare);
         }
         
         else if(move.MoveFlag == Move.Flag.EnPassantCapture) 
         {
             targetPiece = Board.Instance.Cells[move.TargetSquare + (movingPiece.IsColour(PieceUtil.White) ? -8 : 8)].piece;
-            Board.Instance.Cells[move.TargetSquare + (movingPiece.IsColour(PieceUtil.White) ? -8 : 8)].SetPiece(null);
-            Board.Instance.Cells[move.TargetSquare].SetPiece(movingPiece);
             (targetPiece.colour == PieceUtil.White ? whitePieces : blackPieces).Remove(targetPiece);
             movingPiece.SetPosition(move.TargetSquare);
         }
@@ -162,7 +120,6 @@ public class GameManager : MonoBehaviour
         else if(move.IsPromotion) 
         {
             Piece newQueen = new Piece(movingPiece.colour | PieceUtil.Queen, move.TargetSquare);
-            Board.Instance.Cells[move.TargetSquare].SetPiece(newQueen);
             (movingPiece.colour == PieceUtil.White ? whitePieces : blackPieces).Remove(movingPiece);
             (movingPiece.colour == PieceUtil.White ? whitePieces : blackPieces).Add(newQueen);
             if(targetPiece != null)
@@ -175,54 +132,39 @@ public class GameManager : MonoBehaviour
         {
             if(ColourToMove == 8)
             {
-                Board.Instance.Cells[whiteKingPiece.position].SetPiece(null);
                 whiteCastleRights = new int[2] { 0, 0 };
 
                 if(move.TargetSquare > whiteKingPiece.position)
                 {
-                    Board.Instance.Cells[whiteShortRook.position].SetPiece(null);
                     whiteShortRook.SetPosition(5);
                     whiteKingPiece.SetPosition(6);
-                    Board.Instance.Cells[5].SetPiece(whiteShortRook);
-                    Board.Instance.Cells[6].SetPiece(whiteKingPiece);
                 }
                 else
                 {
-                    Board.Instance.Cells[whiteLongRook.position].SetPiece(null);
                     whiteLongRook.SetPosition(3);
                     whiteKingPiece.SetPosition(2);
-                    Board.Instance.Cells[3].SetPiece(whiteLongRook);
-                    Board.Instance.Cells[2].SetPiece(whiteKingPiece);
                 }
             }
 
             else
             {
-                Board.Instance.Cells[blackKingPiece.position].SetPiece(null);
                 blackCastleRights = new int[2] { 0, 0 };
 
                 if(move.TargetSquare > blackKingPiece.position)
                 {
-                    Board.Instance.Cells[blackShortRook.position].SetPiece(null);
                     blackShortRook.SetPosition(61);
                     blackKingPiece.SetPosition(62);
-                    Board.Instance.Cells[61].SetPiece(blackShortRook);
-                    Board.Instance.Cells[62].SetPiece(blackKingPiece);
                 }
                 else
                 {
-                    Board.Instance.Cells[blackLongRook.position].SetPiece(null);
                     blackLongRook.SetPosition(59);
                     blackKingPiece.SetPosition(58);
-                    Board.Instance.Cells[59].SetPiece(blackLongRook);
-                    Board.Instance.Cells[58].SetPiece(blackKingPiece);
                 }
             }
         }
 
         else 
         {
-            Board.Instance.Cells[move.TargetSquare].SetPiece(movingPiece);
             if(targetPiece != null)
                 (targetPiece.colour == PieceUtil.White ? whitePieces : blackPieces).Remove(targetPiece);
             else halfMoves++;
@@ -230,15 +172,38 @@ public class GameManager : MonoBehaviour
         }
 
         ColourToMove = ColourToMove == PieceUtil.White ? PieceUtil.Black : PieceUtil.White;
+        
+        foreach(Piece piece in GameManager.Instance.blackPieces)
+            piece.isPinned = false;
+        foreach(Piece piece in GameManager.Instance.whitePieces)
+            piece.isPinned = false;
 
+        Board.Instance.UpdateVisual();
+        GetLegalMoves();
+
+        if(ColourToMove == PieceUtil.White) fullMoves ++;
+        movesText.text = fullMoves.ToString();
+        if(legalMoves == 0) Checkmate(!KingInCheck);
+    }
+
+    public void RegisterCheck(Piece attacker, params int[] data)
+    {
+        checkResolveSquares = new List<int>();
+
+        if(KingInCheck) return;
+
+        checkResolveSquares.Add(attacker.position);
+
+        if(attacker.IsSlidingPiece())
+            for(int n = 1; n < data[1]; n++)
+                checkResolveSquares.Add(attacker.position + (data[0]*n));
+
+        KingInCheck = true;
+    }
+
+    void GetLegalMoves()
+    {
         attackedSquares = new List<int>();
-
-        foreach(Piece piece in blackPieces)
-            piece.isPinned = false;
-
-        foreach(Piece piece in whitePieces)
-            piece.isPinned = false;
-
         if(GameManager.Instance.ColourToMove == 8)
         {
             foreach(Piece piece in blackPieces)
@@ -275,26 +240,6 @@ public class GameManager : MonoBehaviour
                 piece.SetLegalMoves(temp);
             }
         }
-
-
-        if(ColourToMove == PieceUtil.White) fullMoves ++;
-        movesText.text = fullMoves.ToString();
-        if(legalMoves == 0) Checkmate(!KingInCheck);
-    }
-
-    public void RegisterCheck(Piece attacker, params int[] data)
-    {
-        checkResolveSquares = new List<int>();
-
-        if(KingInCheck) return;
-
-        checkResolveSquares.Add(attacker.position);
-
-        if(attacker.IsSlidingPiece())
-            for(int n = 1; n < data[1]; n++)
-                checkResolveSquares.Add(attacker.position + (data[0]*n));
-
-        KingInCheck = true;
     }
 
     public void Checkmate(bool stalemate)

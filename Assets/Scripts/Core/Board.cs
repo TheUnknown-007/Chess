@@ -139,7 +139,6 @@ public class Board : MonoBehaviour
             _whitePieces.Add(p);
         else
             _blackPieces.Add(p);
-        Cells[cellIndex].SetPiece(p);
     }
 
     public void HoldPiece(Piece piece, int position)
@@ -201,6 +200,16 @@ public class Board : MonoBehaviour
         }
 
         
+    }
+
+    public void UpdateVisual()
+    {
+        foreach(Square cell in Board.Instance.Cells)
+            cell.SetPiece(null);
+        foreach(Piece piece in GameManager.Instance.blackPieces)
+            Board.Instance.Cells[piece.position].SetPiece(piece);
+        foreach(Piece piece in GameManager.Instance.whitePieces)
+            Board.Instance.Cells[piece.position].SetPiece(piece);
     }
 
     public void SetMousePosition(int id)
