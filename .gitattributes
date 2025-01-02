@@ -2,7 +2,10 @@
 * text=auto
 
 *.cs linguist-language=C#
-*.compute linguist-language=hlsl
-*.shader linguist-language=hlsl
-*.cginc linguist-language=hlsl
-*.cg linguist-language=hlsl
+
+# Ignore ShaderLab-related files
+*.compute linguist-detectable=false
+*.shader linguist-detectable=false
+*.hlsl linguist-detectable=false
+*.cginc linguist-detectable=false
+*.cg linguist-detectable=false
